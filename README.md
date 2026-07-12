@@ -12,7 +12,8 @@ The repository is organized so that the paper figures can be regenerated either 
 ├── requirements.txt
 ├── src/
 │   ├── __init__.py
-│   └── star_qdp.py
+│   ├── star_qdp.py
+│   └── temporal_mps.py
 ├── experiments/
 │   ├── __init__.py
 │   ├── run_main_figures.py
@@ -21,7 +22,8 @@ The repository is organized so that the paper figures can be regenerated either 
 ├── notebooks/
 │   ├── 01_generate_main_paper_figures.ipynb
 │   ├── 02_driven_star_validation.ipynb
-│   └── 03_uniform_star_LL_to_quantum_transition.ipynb
+│   ├── 03_uniform_star_LL_to_quantum_transition.ipynb
+│   └── 04_tmps_baseline_and_ensemble_scaling.ipynb
 └── figures/
     ├── *.pdf
     ├── *.png
@@ -56,6 +58,18 @@ The notebooks are intended to be run from the `notebooks/` directory. Each noteb
    - `fig_uniform_star_LL_to_quantum.{pdf,png}`
    - `fig_uniform_star_LL_to_quantum_data.npz`
 
+4. `notebooks/04_tmps_baseline_and_ensemble_scaling.ipynb`
+
+   Regenerates the v9-revision figures: the nested-ensemble driven-star
+   scaling test and the head-to-head comparison against a temporal
+   matrix-product influence-matrix (IM) baseline (see the paper appendix
+   "Temporal influence-matrix baseline"). Uses `src/temporal_mps.py`.
+   Follows a load-or-compute pattern: plots from cached `.npz` files if
+   present; set `FORCE_RECOMPUTE = True` to regenerate from scratch.
+
+   - `fig_driven_scaling_ensemble.{pdf,png}` and `fig_driven_scaling_ensemble_data.npz`
+   - `fig_tmps_baseline.{pdf,png}` and `fig_tmps_baseline_data.npz`
+
 ## Python modules and scripts
 
 ### `src/star_qdp.py`
@@ -69,6 +83,22 @@ Core numerical routines for:
 - L0 and L0+G1 approximations;
 - branch-continuous logarithmic errors;
 - helper routines for driven-star instances and scaling fits.
+
+### `src/temporal_mps.py`
+
+Temporal influence-matrix (IM) MPO baseline for the driven star, plus nested
+driven-star ensembles:
+
+- symmetric-splitting Trotter gates on the hub and hub-leaf pairs;
+- exact bond-2 leaf IM-MPO over the hub time slices;
+- slice-wise MPO multiplication with sequential QR/SVD compression to bond
+  `chi`, and the compressed-amplitude contraction (`im_mpo_amplitude`);
+- circuit-exact statevector reference on the identical gate sequence
+  (`circuit_exact`), used as the unit test of the MPO code;
+- `make_driven_star_instance_nested`: same statistical family as
+  `make_driven_star_instance`, but leaf `c` draws its intrinsic parameters
+  from a stream keyed by `(seed, c)`, so increasing `d` adds leaves without
+  redrawing existing ones (nested ensembles for clean `1/d` slope fits).
 
 ### `experiments/run_main_figures.py`
 
